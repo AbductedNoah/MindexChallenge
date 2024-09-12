@@ -2,8 +2,6 @@ package com.mindex.challenge.service.impl;
 
 import com.mindex.challenge.data.Employee;
 import com.mindex.challenge.service.EmployeeService;
-import org.junit.Before;
-import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +15,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.Collections;
+
+import org.junit.Before;
+import org.junit.Test;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -47,6 +50,7 @@ public class EmployeeServiceImplTest {
         testEmployee.setLastName("Doe");
         testEmployee.setDepartment("Engineering");
         testEmployee.setPosition("Developer");
+        testEmployee.setDirectReports(Collections.emptyList());
 
         // Create checks
         Employee createdEmployee = restTemplate.postForEntity(employeeUrl, testEmployee, Employee.class).getBody();

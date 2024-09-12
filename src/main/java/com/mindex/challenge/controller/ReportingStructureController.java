@@ -21,10 +21,16 @@ public class ReportingStructureController {
     	this.reportingService = reportingService;
     }
 
-    @GetMapping("/reportingStructure/{id}")
-    public ReportingStructure getStructure(@PathVariable String id) {
-        LOG.debug("Received employee structure request for employeeId=[{}]", id);
+    /**
+     * Get endpoint for retrieving the reporting structure of a given employeeId. 
+     * 
+     * @param employeeId the employeeId
+     * @return The ReportingStructure
+     */
+    @GetMapping("/reportingStructure/{employeeId}")
+    public ReportingStructure getStructure(@PathVariable String employeeId) {
+        LOG.debug("Received employee structure request for employeeId=[{}]", employeeId);
 
-        return reportingService.reportStructure(id);
+        return reportingService.reportStructure(employeeId);
     }
 }
