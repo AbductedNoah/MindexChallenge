@@ -5,7 +5,6 @@ import com.mindex.challenge.data.Employee;
 import com.mindex.challenge.service.EmployeeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 
@@ -14,8 +13,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
-    @Autowired
     private EmployeeRepository employeeRepository;
+    
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository) {
+    	this.employeeRepository = employeeRepository;
+    }
 
     @Override
     public Employee create(Employee employee) {
@@ -29,7 +31,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee read(String id) {
-        LOG.debug("Creating employee with id [{}]", id);
+        LOG.debug("Finding employee with id [{}]", id);
 
         Employee employee = employeeRepository.findByEmployeeId(id);
 
