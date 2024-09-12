@@ -2,8 +2,10 @@ package com.mindex.challenge.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,80 +19,75 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.mindex.challenge.data.Employee;
 import com.mindex.challenge.data.ReportingStructure;
 import com.mindex.challenge.service.EmployeeService;
-import com.mindex.challenge.service.ReportingStructureService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ReportingStructureServiceImplTest {
-	private String reportingStructureUrl;
+
+    private String employeeUrl;
+    private String reportingStructureUrl;
 
     @Autowired
-    private ReportingStructureService reportingStructureService;
-
+    private TestRestTemplate restTemplate;
+    
     @Autowired
     private EmployeeService employeeService;
+    
+    @Autowired
+    private ReportingStructureServiceImpl reportingStructureServiceImpl;
 
     @LocalServerPort
     private int port;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
     @Before
     public void setup() {
-        reportingStructureUrl = "http://localhost:" + port + "/reportingStructure/{id}";
+        employeeUrl = "http://localhost:" + port + "/employee";
+        reportingStructureUrl = "http://localhost:" + port + "/reportingStructure/{employeeId}";
     }
 
     @Test
-    public void testReportingStructure() {
-        // Create test employees
-        Employee johnLennon = createTestEmployee("John", "Lennon", "Music", "Lead");
-        Employee paulMcCartney = createTestEmployee("Paul", "McCartney", "Music", "Rhythm");
-        Employee ringoStarr = createTestEmployee("Ringo", "Starr", "Music", "Drums");
-        Employee peteBest = createTestEmployee("Pete", "Best", "Music", "Drums");
-        Employee georgeHarrison = createTestEmployee("George", "Harrison", "Music", "Lead");
+    public void testReportStructure() {
+    	
+    	Employee emp1 = new Employee();
+        emp1.setFirstName("John");
+        emp1.setLastName("Doe");
+        emp1.setDepartment("Engineering");
+        emp1.setPosition("Developer");
+        emp1.setDirectReports(Collections.emptyList());
 
-        // Set up reporting structure
-        johnLennon.setDirectReports(Arrays.asList(paulMcCartney, ringoStarr));
-        ringoStarr.setDirectReports(Arrays.asList(peteBest, georgeHarrison));
+        Employee emp2 = new Employee();
+        emp2.setFirstName("Jane");
+        emp2.setLastName("Doe");
+        emp2.setDepartment("Engineering");
+        emp2.setPosition("Senior Developer");
+        emp2.setDirectReports(Collections.emptyList());
 
-        // Save the structure
-        employeeService.create(johnLennon);
-        employeeService.create(paulMcCartney);
-        employeeService.create(ringoStarr);
-        employeeService.create(peteBest);
-        employeeService.create(georgeHarrison);
+        Employee manager = new Employee();
+        manager.setFirstName("Alice");
+        manager.setLastName("Smith");
+        manager.setDepartment("Engineering");
+        manager.setPosition("Manager");
+        
+        emp1 = restTemplate.postForEntity(employeeUrl, emp1, Employee.class).getBody();
+        emp2 = restTemplate.postForEntity(employeeUrl, emp2, Employee.class).getBody();
+        
+        manager.setDirectReports(Arrays.asList(emp1, emp2));
+        
+        manager = restTemplate.postForEntity(employeeUrl, manager, Employee.class).getBody();
+        
+        
+        // Test valid reporting structure
+        ReportingStructure report = restTemplate.getForEntity(reportingStructureUrl, ReportingStructure.class, manager.getEmployeeId()).getBody();
 
-        // Test the reporting structure
-        ReportingStructure reportingStructure = restTemplate.getForEntity(reportingStructureUrl, 
-                                                ReportingStructure.class, 
-                                                johnLennon.getEmployeeId()).getBody();
-
-        assertNotNull(reportingStructure);
-        assertEquals(johnLennon.getEmployeeId(), reportingStructure.getEmployee().getEmployeeId());
-        assertEquals(4, reportingStructure.getNumberOfReports());
+        assertNotNull(report);
+        assertEquals(manager.getEmployeeId(), report.getEmployee().getEmployeeId());
+        assertEquals(2, report.getNumberOfReports());
     }
-
+    
     @Test
-    public void testReportingStructureWithNoReports() {
-        Employee employee = createTestEmployee("Solo", "Artist", "Music", "Singer");
-        employeeService.create(employee);
-
-        ReportingStructure reportingStructure = restTemplate.getForEntity(reportingStructureUrl, 
-                                                ReportingStructure.class, 
-                                                employee.getEmployeeId()).getBody();
-
-        assertNotNull(reportingStructure);
-        assertEquals(employee.getEmployeeId(), reportingStructure.getEmployee().getEmployeeId());
-        assertEquals(0, reportingStructure.getNumberOfReports());
-    }
-
-    private Employee createTestEmployee(String firstName, String lastName, String department, String position) {
-        Employee employee = new Employee();
-        employee.setFirstName(firstName);
-        employee.setLastName(lastName);
-        employee.setDepartment(department);
-        employee.setPosition(position);
-        return employee;
+    public void testInvalidEmployee() {
+    	ReportingStructure reportingStructure = restTemplate.getForEntity(reportingStructureUrl, ReportingStructure.class, "test").getBody();
+    	assertNull(reportingStructure.getEmployee());
+    	assertEquals(0, reportingStructure.getNumberOfReports());
     }
 }

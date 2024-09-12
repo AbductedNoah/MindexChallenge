@@ -12,6 +12,9 @@ public class ReportingStructure {
 		this.numberOfReports = numberOfReports;
 	}
 	
+	public ReportingStructure() {
+	}
+	
 	/**
 	 * @return the employee
 	 */
